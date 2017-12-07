@@ -2,7 +2,6 @@ package globalminimum.sudoku
 
 import java.io.File
 
-import akka.Done
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
@@ -25,8 +24,8 @@ object SudokuMain {
     implicit val askTimeout: Timeout = 5.seconds
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    val result = (sudokuSolver ? SudokuSolver.InitialRowUpdates(rowUpdates)).mapTo[Done]
-    result.flatMap(x => Future(println("Done !"))).onComplete( _ => system.terminate())
+    val result = (sudokuSolver ? SudokuSolver.InitialRowUpdates(rowUpdates)).mapTo[SudokuSolver.Result]
+    result.flatMap{x => println(s"Result ~~> ${x.sudoku.mkString("\n   ", "\n   ", "")}"); Future(println("Done !"))}.onComplete( _ => system.terminate())
   }
 
 

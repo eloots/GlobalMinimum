@@ -17,6 +17,7 @@ package object sudoku {
 
   type CellContent = Set[Int]
   type ReductionSet = Vector[CellContent]
+  type Sudoku = Vector[ReductionSet]
 
   type CellUpdates = Seq[(Int, Set[Int])]
   val cellUpdatesEmpty = Seq.empty[(Int, Set[Int])]

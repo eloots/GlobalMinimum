@@ -10,7 +10,8 @@ object SudokuDetailProcessor {
   case class ColumnUpdate(id: Int, cellUpdates: CellUpdates)
   case class BlockUpdate(id: Int, cellUpdates: CellUpdates)
   case object SudokuDetailUnchanged
-  case object PrintResult
+  case object GetSudokuDetailState
+  case class  SudokuDetailState(index: Int, state: ReductionSet)
 
   val InitialDetailState: ReductionSet = cellIndexesVector.map(_ => initialCell)
 
@@ -45,9 +46,9 @@ class SudokuDetailProcessor[DetailType <: SudokoDetailType : UpdateSender](id: I
 
   override def receive: Receive = operational(id, state)
 
-  def operational(id: Int, state: ReductionSet = InitialDetailState): Receive = {
+  def operational(id: Int, state: ReductionSet = InitialDetailState, fullyReduced: Boolean = false): Receive = {
 
-    case Update(cellUpdates) =>
+    case Update(cellUpdates) if ! fullyReduced =>
       val updatedState = mergeState(state, cellUpdates)
       val transformedUpdatedState = reductionRuleTwo(reductionRuleOne(updatedState))
       if (transformedUpdatedState == state) {
@@ -55,14 +56,17 @@ class SudokuDetailProcessor[DetailType <: SudokoDetailType : UpdateSender](id: I
       } else {
         val updateSender = implicitly[UpdateSender[DetailType]]
         updateSender.sendUpdate(id, stateChanges(state, transformedUpdatedState))(sender)
-        context.become(operational(id, transformedUpdatedState))
+        context.become(operational(id, transformedUpdatedState, isFullyReduced(transformedUpdatedState)))
       }
 
-    case PrintResult =>
-      log.debug(s"Detail($id) => $state")
-//      println(s"Detail($id) => $state")
+    case Update(cellUpdates) =>
+      //      log.debug(s"State: Nothing left to do ! $state")
+      sender ! SudokuDetailUnchanged
+
+    case GetSudokuDetailState =>
+      sender() ! SudokuDetailState(id, state)
   }
-  
+
   private def mergeState(state: ReductionSet, cellUpdates: CellUpdates): ReductionSet = {
     (cellUpdates foldLeft state) {
       case (stateTally, (index, updatedCellContent)) =>
@@ -74,9 +78,14 @@ class SudokuDetailProcessor[DetailType <: SudokoDetailType : UpdateSender](id: I
     ((state zip updatedState).zipWithIndex foldRight cellUpdatesEmpty) {
       case (((previousCellContent, updatedCellContent), index), cellUpdates)
         if updatedCellContent != previousCellContent =>
-          (index, updatedCellContent) +: cellUpdates
+        (index, updatedCellContent) +: cellUpdates
 
       case (_, cellUpdates) => cellUpdates
     }
+  }
+
+  private def isFullyReduced(state: ReductionSet): Boolean = {
+    val allValuesInState = state.flatten
+    allValuesInState == allValuesInState.distinct
   }
 }

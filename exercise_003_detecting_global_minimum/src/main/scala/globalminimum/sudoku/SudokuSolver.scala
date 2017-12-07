@@ -9,6 +9,7 @@ object SudokuSolver {
   case class SetInitialCells(updates: CellUpdates)
 
   case class InitialRowUpdates(rowUpdates: Seq[SudokuDetailProcessor.RowUpdate])
+  case class Result(sudoku: Sudoku)
 
   def genDetailProcessors[A <: SudokoDetailType : UpdateSender](context: ActorContext): Map[Int, ActorRef] = {
     cellIndexesVector.map {
@@ -29,7 +30,7 @@ class SudokuSolver extends Actor with ActorLogging {
   private val columnDetailProcessors = genDetailProcessors[Column](context)
   private val blockDetailProcessors  = genDetailProcessors[Block](context)
 
-  private val progressTracker = context.actorOf(SudokuProgressTracker.props(), "sudoku-progress-tracker")
+  private val progressTracker = context.actorOf(SudokuProgressTracker.props(rowDetailProcessors), "sudoku-progress-tracker")
 
   import CellMappings._
 
@@ -94,9 +95,13 @@ class SudokuSolver extends Actor with ActorLogging {
 //      log.debug(s"SudokuDetailUnchanged")
       progressTracker ! unchanged
 
-    case SudokuDetailProcessor.PrintResult =>
-      rowDetailProcessors.foreach { case (_, processor) => processor ! SudokuDetailProcessor.PrintResult }
-      requestor.get ! Done
+    case result @ Result(sudoku) =>
+      requestor.get ! result
       context.become(processRequest(None))
+
+//    case SudokuDetailProcessor.PrintResult =>
+//      rowDetailProcessors.foreach { case (_, processor) => processor ! SudokuDetailProcessor.PrintResult }
+//      requestor.get ! Done
+//      context.become(processRequest(None))
   }
 }
