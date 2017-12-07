@@ -1,5 +1,6 @@
 package globalminimum.sudoku
 
+import akka.Done
 import akka.actor.{Actor, ActorContext, ActorLogging, ActorRef, Props}
 import globalminimum.sudoku.SudokuDetailProcessor.UpdateSender
 
@@ -28,9 +29,15 @@ class SudokuSolver extends Actor with ActorLogging {
   private val columnDetailProcessors = genDetailProcessors[Column](context)
   private val blockDetailProcessors  = genDetailProcessors[Block](context)
 
+  private val progressTracker = context.actorOf(SudokuProgressTracker.props(), "sudoku-progress-tracker")
+
   import CellMappings._
-  override def receive: Receive = {
+
+  override def receive: Receive = processRequest(None)
+
+  def processRequest(requestor: Option[ActorRef]): Receive = {
     case SudokuDetailProcessor.RowUpdate(rowNr, updates) =>
+//      log.debug(s"Detail Processor: Rowupdate(${rowNr}/${updates.size})")
       updates.foreach {
         case (rowCellNr, newCellContent) =>
 
@@ -42,8 +49,10 @@ class SudokuSolver extends Actor with ActorLogging {
           val blockUpdate = List((blockCellNr, newCellContent))
           blockDetailProcessors(blockNr) ! SudokuDetailProcessor.Update(blockUpdate)
       }
+      progressTracker ! SudokuProgressTracker.NewUpdatesInFlight(2 * updates.size - 1)
 
     case SudokuDetailProcessor.ColumnUpdate(columnNr, updates) =>
+//      log.debug(s"Detail Processor: Columnupdate(${columnNr}/${updates.size})")
       updates.foreach {
         case (colCellNr, newCellContent) =>
 
@@ -55,8 +64,10 @@ class SudokuSolver extends Actor with ActorLogging {
           val blockUpdate = List((blockCellNr, newCellContent))
           blockDetailProcessors(blockNr) ! SudokuDetailProcessor.Update(blockUpdate)
       }
+      progressTracker ! SudokuProgressTracker.NewUpdatesInFlight(2 * updates.size - 1)
 
     case SudokuDetailProcessor.BlockUpdate(blockNr, updates) =>
+//      log.debug(s"Detail Processor: Blockupdate(${blockNr}/${updates.size})")
       updates.foreach {
         case (blockCellNr, newCellContent) =>
 
@@ -68,16 +79,24 @@ class SudokuSolver extends Actor with ActorLogging {
           val columnUpdate = List((columnCellNr, newCellContent))
           columnDetailProcessors(columnNr) ! SudokuDetailProcessor.Update(columnUpdate)
       }
+      progressTracker ! SudokuProgressTracker.NewUpdatesInFlight(2 * updates.size - 1)
 
     case InitialRowUpdates(rowUpdates) =>
       rowUpdates.foreach {
         case SudokuDetailProcessor.RowUpdate(row, cellUpdates) =>
           rowDetailProcessors(row) ! SudokuDetailProcessor.Update(cellUpdates)
       }
+      progressTracker ! SudokuProgressTracker.NewUpdatesInFlight(rowUpdates.size)
+      context.become(processRequest(Some(sender())))
 
-    case SudokuDetailProcessor.SudokuDetailUnchanged =>
+
+    case unchanged @ SudokuDetailProcessor.SudokuDetailUnchanged =>
+//      log.debug(s"SudokuDetailUnchanged")
+      progressTracker ! unchanged
 
     case SudokuDetailProcessor.PrintResult =>
       rowDetailProcessors.foreach { case (_, processor) => processor ! SudokuDetailProcessor.PrintResult }
+      requestor.get ! Done
+      context.become(processRequest(None))
   }
 }

@@ -2,7 +2,13 @@ package globalminimum.sudoku
 
 import java.io.File
 
+import akka.Done
 import akka.actor.ActorSystem
+import akka.pattern.ask
+import akka.util.Timeout
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 object SudokuMain {
 
@@ -16,12 +22,11 @@ object SudokuMain {
 
     val sudokuSolver = system.actorOf(SudokuSolver.props())
 
-    sudokuSolver ! SudokuSolver.InitialRowUpdates(rowUpdates)
-    //rowUpdates.foreach(update => sudokuSolver ! update)
-    Thread.sleep(1000)
-    sudokuSolver ! SudokuDetailProcessor.PrintResult
-    Thread.sleep(200)
-    system.terminate()
+    implicit val askTimeout: Timeout = 5.seconds
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    val result = (sudokuSolver ? SudokuSolver.InitialRowUpdates(rowUpdates)).mapTo[Done]
+    result.flatMap(x => Future(println("Done !"))).onComplete( _ => system.terminate())
   }
 
 
