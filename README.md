@@ -36,7 +36,7 @@ Run the solver from `sbt` as demonstrated below _(don't forget to select the pro
 The file `sudokus/dm171203-03.sudoku` is a text file that contains the sudoku puzzle:
 
 ```
-6 | 2 |9 7
+ 6 | 2 |9 7
    |369|
   1| 4 |
 ---+---+---
