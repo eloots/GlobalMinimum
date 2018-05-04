@@ -9,7 +9,7 @@
         </encoder>
     </appender>
 
-    <logger name="globalminimum.sudoku" level="debug" additivity="false">
+    <logger name="org.globalminimum.sudoku" level="debug" additivity="false">
         <appender-ref ref="console"/>
     </logger>
 
