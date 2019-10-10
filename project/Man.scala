@@ -1,4 +1,5 @@
 package sbtstudent
+
 /**
   * Copyright © 2014, 2015, 2016 Lightbend, Inc. All rights reserved. [http://www.typesafe.com]
   */
@@ -19,8 +20,11 @@ object Man {
     arg match {
       case Some(a) if a == "e" =>
         val base: File = Project.extract(state).get(sourceDirectory)
-        val basePath: String = base + "/test/resources/README.md"
-        printOut(basePath)
+        val readmeFile: File = {
+          val bPath = new File(base, "/test/resources/README.md")
+          if (bPath.isFile) bPath else new File(base, "../README.md")
+        }
+        printOut(readmeFile)
         Console.print("\n")
         state
       case Some(a) =>
@@ -31,30 +35,29 @@ object Man {
       case None =>
         val base: File = Project.extract(state).get(baseDirectory)
         val readMeFile = new sbt.File(new sbt.File(Project.extract(state).structure.root), "README.md")
-        val basePath = readMeFile.getPath
-        printOut(basePath)
+        printOut(readMeFile)
         Console.print("\n")
         state
     }
   }
 
   val bulletRx: Regex = """- """.r
-  val boldRx: Regex = """(\*\*)(.*)(\*\*)""".r
+  val boldRx: Regex = """(\*\*)(\w*)(\*\*)""".r
   val codeRx: Regex = """(`)([^`]+)(`)""".r
   val fenceStartRx: Regex = """^```(bash|scala)$""".r
   val fenceEndRx: Regex = """^```$""".r
   val numberRx: Regex = """^(\d{1,3})(\. )""".r
   val urlRx: Regex = """(\()(htt[a-zA-Z0-9\-\.\/:]*)(\))""".r
   val ConBlue = Console.BLUE
-  val ConMagenta = Console.MAGENTA
   val ConGreen = Console.GREEN
+  val ConMagenta = Console.MAGENTA
   val ConRed = Console.RED
   val ConReset = Console.RESET
   val ConYellow = Console.YELLOW
 
-  def printOut(path: String) {
+  def printOut(path: File) {
     var inCodeFence = false
-    IO.readLines(new sbt.File(path)) foreach {
+    IO.readLines(path) foreach {
       case ln if !inCodeFence && ln.length > 0 && ln(0).equals('#') =>
         Console.println(ConRed + ln + ConReset)
       case ln if !inCodeFence && ln.matches(".*" + bulletRx.toString() + ".*") =>

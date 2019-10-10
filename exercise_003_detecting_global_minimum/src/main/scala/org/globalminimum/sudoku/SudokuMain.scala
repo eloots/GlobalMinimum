@@ -1,4 +1,4 @@
-package globalminimum.sudoku
+package org.globalminimum.sudoku
 
 import java.io.File
 

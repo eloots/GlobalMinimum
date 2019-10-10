@@ -1,8 +1,7 @@
-package globalminimum.sudoku
-
-import org.scalatest.{Matchers, WordSpec}
+package org.globalminimum.sudoku
 
 import CellMappings._
+import org.scalatest.{Matchers, WordSpec}
 
 class CellMappingSpec extends WordSpec with Matchers {
 

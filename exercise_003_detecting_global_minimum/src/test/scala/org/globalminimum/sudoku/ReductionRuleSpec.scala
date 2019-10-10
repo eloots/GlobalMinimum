@@ -2,7 +2,7 @@
  * Copyright © 2014 - 2016 Lightbend, Inc. All rights reserved. [http://www.lightbend.com]
  */
 
-package globalminimum.sudoku
+package org.globalminimum.sudoku
 
 import org.scalatest.{Matchers, WordSpec}
 

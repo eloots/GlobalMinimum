@@ -33,7 +33,7 @@ object SudokuMain {
 
       result
         .flatMap { x => println(s"Result ~~> ${x.sudoku.mkString("\n   ", "\n   ", "")}"); Future(println("Done !")) }
-//        .onComplete(_ => system.terminate())
+        .onComplete{_ => Thread.sleep(1000); system.terminate()}
     }
   }
 

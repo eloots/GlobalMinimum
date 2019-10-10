@@ -1,4 +1,4 @@
-package globalminimum
+package org.globalminimum
 
 package object sudoku {
 

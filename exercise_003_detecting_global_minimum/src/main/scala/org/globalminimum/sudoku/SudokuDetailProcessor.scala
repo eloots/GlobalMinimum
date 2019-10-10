@@ -1,7 +1,7 @@
-package globalminimum.sudoku
+package org.globalminimum.sudoku
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import globalminimum.sudoku.SudokuDetailProcessor.UpdateSender
+import org.globalminimum.sudoku.SudokuDetailProcessor.UpdateSender
 
 object SudokuDetailProcessor {
 

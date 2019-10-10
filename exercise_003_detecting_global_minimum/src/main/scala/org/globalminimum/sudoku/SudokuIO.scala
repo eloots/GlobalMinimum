@@ -1,7 +1,4 @@
-package globalminimum.sudoku
-
-import java.io.{FileReader, BufferedReader, File}
-
+package org.globalminimum.sudoku
 
 object SudokuIO {
 
@@ -47,10 +44,9 @@ object SudokuIO {
    * FileLineTraversable code taken from "Scala in Depth" by Joshua Suereth
    */
 
+  import java.io.{BufferedReader, File, FileReader}
+
   import scala.language.postfixOps
-  import java.io.BufferedReader
-  import java.io.FileReader
-  import java.io.File
   class FileLineTraversable(file: File) extends Traversable[String] {
     override def foreach[U](f: String => U): Unit = {
       val input = new BufferedReader(new FileReader(file))

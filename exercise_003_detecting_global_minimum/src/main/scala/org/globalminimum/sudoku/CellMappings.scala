@@ -1,4 +1,4 @@
-package globalminimum.sudoku
+package org.globalminimum.sudoku
 
 object CellMappings {
 
