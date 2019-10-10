@@ -1,0 +1,5 @@
+#!/bin/bash
+
+for i in exercise_00*;do
+  sbt -jvm-opts .jvmopts-travis -Dakka.build.scalaVersion=$TRAVIS_SCALA_VERSION ";update;project $i;test:compile ;test"
+done
