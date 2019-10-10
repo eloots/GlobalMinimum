@@ -29,7 +29,8 @@ class SudokuProgressTracker(rowDetailProcessors: Map[Int, ActorRef]) extends Act
       context.become(trackProgress(updatesInFlight - 1))
   }
 
-  def collectEndState(remainingRows: Int = 9, endState: Vector[SudokuDetailProcessor.SudokuDetailState] = Vector.empty[SudokuDetailProcessor.SudokuDetailState]): Receive = {
+  def collectEndState(remainingRows: Int = 9,
+                      endState: Vector[SudokuDetailProcessor.SudokuDetailState] = Vector.empty[SudokuDetailProcessor.SudokuDetailState]): Receive = {
     case detail @ SudokuDetailProcessor.SudokuDetailState(index, state) if remainingRows == 1 =>
       context.parent ! SudokuSolver.Result((detail +: endState).sortBy { case SudokuDetailProcessor.SudokuDetailState(idx, _) => idx }.map { case SudokuDetailProcessor.SudokuDetailState(_, state) => state})
       context.become(trackProgress(updatesInFlight = 0))

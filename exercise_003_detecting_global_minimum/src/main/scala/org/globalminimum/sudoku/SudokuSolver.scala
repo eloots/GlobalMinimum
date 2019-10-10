@@ -13,7 +13,7 @@ object SudokuSolver {
   def genDetailProcessors[A <: SudokoDetailType : UpdateSender](context: ActorContext): Map[Int, ActorRef] = {
     cellIndexesVector.map {
       case index =>
-        val detailProcessor = context.actorOf(SudokuDetailProcessor.props[A](index))
+        val detailProcessor = context.actorOf(SudokuDetailProcessor.props[A](index), s"${implicitly[UpdateSender[A]].processorType}DetailProcessor-$index")
         (index, detailProcessor)
     }.toMap
   }

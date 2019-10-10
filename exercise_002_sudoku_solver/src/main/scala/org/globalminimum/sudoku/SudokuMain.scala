@@ -16,9 +16,11 @@ object SudokuMain {
 
     val sudokuSolver = system.actorOf(SudokuSolver.props())
 
+    // Send initial state of Sudoku rows to SudokuSolver
     sudokuSolver ! SudokuSolver.InitialRowUpdates(rowUpdates)
-    //rowUpdates.foreach(update => sudokuSolver ! update)
+    // Let the SudokuSolver to its work for 1000ms...
     Thread.sleep(1000)
+    // Request printing of the state of the rows - ordering of printed rows is non-deterministic
     sudokuSolver ! SudokuDetailProcessor.PrintResult
     Thread.sleep(200)
     system.terminate()

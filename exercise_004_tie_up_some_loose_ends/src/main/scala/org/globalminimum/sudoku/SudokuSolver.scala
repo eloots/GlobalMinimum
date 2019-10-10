@@ -13,7 +13,7 @@ object SudokuSolver {
   def genDetailProcessors[A <: SudokoDetailType : UpdateSender](context: ActorContext): Map[Int, ActorRef] = {
     cellIndexesVector.map {
       index =>
-        val detailProcessor = context.actorOf(SudokuDetailProcessor.props[A](index))
+        val detailProcessor = context.actorOf(SudokuDetailProcessor.props[A](index), s"${implicitly[UpdateSender[A]].processorType}-detail-processor-$index")
         (index, detailProcessor)
     }.toMap
   }
@@ -50,7 +50,7 @@ class SudokuSolver extends Actor with ActorLogging with Stash {
 
   def processRequest(requestor: Option[ActorRef]): Receive = {
     case SudokuDetailProcessor.RowUpdate(rowNr, updates) =>
-//      log.debug(s"Detail Processor: Rowupdate(${rowNr}/${updates.size})")
+      log.debug(s"Detail Processor: Rowupdate(${rowNr}/${updates.size})")
       updates.foreach {
         case (rowCellNr, newCellContent) =>
 
@@ -65,7 +65,7 @@ class SudokuSolver extends Actor with ActorLogging with Stash {
       progressTracker ! SudokuProgressTracker.NewUpdatesInFlight(2 * updates.size - 1)
 
     case SudokuDetailProcessor.ColumnUpdate(columnNr, updates) =>
-//      log.debug(s"Detail Processor: Columnupdate(${columnNr}/${updates.size})")
+      log.debug(s"Detail Processor: Columnupdate(${columnNr}/${updates.size})")
       updates.foreach {
         case (colCellNr, newCellContent) =>
 
@@ -80,7 +80,7 @@ class SudokuSolver extends Actor with ActorLogging with Stash {
       progressTracker ! SudokuProgressTracker.NewUpdatesInFlight(2 * updates.size - 1)
 
     case SudokuDetailProcessor.BlockUpdate(blockNr, updates) =>
-//      log.debug(s"Detail Processor: Blockupdate(${blockNr}/${updates.size})")
+      log.debug(s"Detail Processor: Blockupdate(${blockNr}/${updates.size})")
       updates.foreach {
         case (blockCellNr, newCellContent) =>
 
@@ -95,7 +95,7 @@ class SudokuSolver extends Actor with ActorLogging with Stash {
       progressTracker ! SudokuProgressTracker.NewUpdatesInFlight(2 * updates.size - 1)
 
     case unchanged @ SudokuDetailProcessor.SudokuDetailUnchanged =>
-//      log.debug(s"SudokuDetailUnchanged")
+      log.debug(s"SudokuDetailUnchanged")
       progressTracker ! unchanged
 
     case result @ Result(sudoku) =>
@@ -106,11 +106,6 @@ class SudokuSolver extends Actor with ActorLogging with Stash {
 
     case _ =>
       stash()
-
-//    case SudokuDetailProcessor.PrintResult =>
-//      rowDetailProcessors.foreach { case (_, processor) => processor ! SudokuDetailProcessor.PrintResult }
-//      requestor.get ! Done
-//      context.become(processRequest(None))
   }
 
   private def resetAllDetailProcessors(): Unit = {

@@ -1,6 +1,6 @@
 package org.globalminimum.sudoku
 
-import java.io.{FileReader, BufferedReader, File}
+import java.util.NoSuchElementException
 
 
 object SudokuIO {
@@ -16,15 +16,6 @@ object SudokuIO {
     (for { subRow <- 0 until 3 } yield printSubRow(subRow)).mkString("\n")
   }
 
-//  def printField( field: SudokuField): Unit = {
-//    val sepLine = "+-----"*(9)+"+"
-//    println(sepLine)
-//    for (row <- 0 until 9) {
-//      println(printRow(field.cells(row)))
-//      println(sepLine)
-//    }
-//  }
-
   def printRowShort( row: ReductionSet): String = {
     (for {
       elem <- row
@@ -34,37 +25,50 @@ object SudokuIO {
 
   }
 
-//  def printFieldShort( field: SudokuField): Unit = {
-//    val sepLine = "+-"*(9)+"+"
-//    println(sepLine)
-//    for (row <- 0 until 9) {
-//      println(printRowShort(field.cells(row)))
-//      println(sepLine)
-//    }
-//  }
-
   /*
    * FileLineTraversable code taken from "Scala in Depth" by Joshua Suereth
    */
 
+  import java.io.{BufferedReader, File, FileReader}
+
   import scala.language.postfixOps
-  import java.io.BufferedReader
-  import java.io.FileReader
-  import java.io.File
-  class FileLineTraversable(file: File) extends Traversable[String] {
-    override def foreach[U](f: String => U): Unit = {
-      val input = new BufferedReader(new FileReader(file))
-      try {
-        var line = input.readLine
-        while (line != null) {
-          f(line)
-          line = input.readLine
+  class FileLineTraversable(file: File) extends Iterable[String] {
+    val input = new BufferedReader(new FileReader(file))
+    var cachedLine: Option[String] = None
+    var finished: Boolean = false
+
+    override def iterator: Iterator[String] = new Iterator[String] {
+
+      override def hasNext: Boolean = (cachedLine, finished) match {
+        case (Some(_), _) => true
+
+        case (None, true) => false
+
+        case (None, false) =>
+          try {
+            val line = input.readLine()
+            if (line == null) {
+              finished = true
+              false
+            } else {
+              cachedLine = Some(line)
+              true
+            }
+          } catch {
+            case e: java.io.IOError =>
+              throw new IllegalStateException(e.toString)
+          }
+      }
+
+      override def next(): String = {
+        if (! hasNext) {
+          throw new NoSuchElementException("No more lines in file")
         }
-      } finally {
-        input.close()
+        val currentLine = cachedLine.get
+        cachedLine = None
+        currentLine
       }
     }
-
     override def toString: String =
       "{Lines of " + file.getAbsolutePath + "}"
   }

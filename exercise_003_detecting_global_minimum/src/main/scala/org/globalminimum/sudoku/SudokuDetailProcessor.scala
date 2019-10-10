@@ -20,22 +20,25 @@ object SudokuDetailProcessor {
 
   trait UpdateSender[A] {
     def sendUpdate(id: Int, cellUpdates: CellUpdates)(implicit sender: ActorRef): Unit
+    def processorType: String
   }
 
   implicit val rowUpdateSender: UpdateSender[Row] = new UpdateSender[Row] {
-    override def sendUpdate(id: Int, cellUpdates: CellUpdates)(implicit sender: ActorRef): Unit = {
+    override def sendUpdate(id: Int, cellUpdates: CellUpdates)(implicit sender: ActorRef): Unit =
       sender ! RowUpdate(id, cellUpdates)
-    }
+    override def processorType: String = "row"
   }
 
   implicit val columnUpdateSender: UpdateSender[Column] = new UpdateSender[Column] {
     override def sendUpdate(id: Int, cellUpdates: CellUpdates)(implicit sender: ActorRef): Unit =
       sender ! ColumnUpdate(id, cellUpdates)
+    override def processorType: String = "column"
   }
 
   implicit val blockUpdateSender: UpdateSender[Block] = new UpdateSender[Block] {
     override def sendUpdate(id: Int, cellUpdates: CellUpdates)(implicit sender: ActorRef): Unit =
       sender ! BlockUpdate(id, cellUpdates)
+    override def processorType: String = "block"
   }
 }
 

@@ -22,7 +22,7 @@ object SudokuMain {
     val sudokuSolver = system.actorOf(SudokuSolver.props())
 
     implicit val askTimeout: Timeout = 5.seconds
-    import scala.concurrent.ExecutionContext.Implicits.global
+    import system.dispatcher
 
     val result = (sudokuSolver ? SudokuSolver.InitialRowUpdates(rowUpdates)).mapTo[SudokuSolver.Result]
     result.flatMap{x => println(s"Result ~~> ${x.sudoku.mkString("\n   ", "\n   ", "")}"); Future(println("Done !"))}.onComplete( _ => system.terminate())

@@ -22,9 +22,8 @@ object SudokuDetailProcessor {
   }
 
   implicit val rowUpdateSender: UpdateSender[Row] = new UpdateSender[Row] {
-    override def sendUpdate(id: Int, cellUpdates: CellUpdates)(implicit sender: ActorRef): Unit = {
+    override def sendUpdate(id: Int, cellUpdates: CellUpdates)(implicit sender: ActorRef): Unit =
       sender ! RowUpdate(id, cellUpdates)
-    }
   }
 
   implicit val columnUpdateSender: UpdateSender[Column] = new UpdateSender[Column] {
@@ -59,8 +58,7 @@ class SudokuDetailProcessor[DetailType <: SudokoDetailType : UpdateSender](id: I
       }
 
     case PrintResult =>
-      log.debug(s"Detail($id) => $state")
-//      println(s"Detail($id) => $state")
+      log.info(s"Detail($id) => $state")
   }
   
   private def mergeState(state: ReductionSet, cellUpdates: CellUpdates): ReductionSet = {

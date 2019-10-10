@@ -21,10 +21,8 @@ object SudokuDetailProcessor {
   }
 
   implicit val rowUpdateSender: UpdateSender[Row] = new UpdateSender[Row] {
-    override def sendUpdate(id: Int, cellUpdates: CellUpdates)(implicit sender: ActorRef): Unit = {
-//      println(s"sending a row update... to $sender")
+    override def sendUpdate(id: Int, cellUpdates: CellUpdates)(implicit sender: ActorRef): Unit =
       sender ! RowUpdate(id, cellUpdates)
-    }
   }
 
   implicit val columnUpdateSender: UpdateSender[Column] = new UpdateSender[Column] {
@@ -53,10 +51,8 @@ class SudokuDetailProcessor[DetailType <: SudokoDetailType : UpdateSender](id: I
       if (transformedUpdatedState == state) {
         sender ! SudokuDetailUnchanged
       } else {
-//        println(s"Going to send an update. Sender = $sender")
         val updateSender = implicitly[UpdateSender[DetailType]]
         updateSender.sendUpdate(id, stateChanges(state, transformedUpdatedState))(sender)
-        //sender ! Update(stateChanges(state, transformedUpdatedState))
         context.become(operational(id, transformedUpdatedState))
       }
   }

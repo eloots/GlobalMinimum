@@ -15,26 +15,26 @@ object SudokuMain {
 
     val system = ActorSystem("sudoku-solver-system")
 
-    val sudokuSolver = system.actorOf(SudokuSolver.props())
+    val sudokuSolver = system.actorOf(SudokuSolver.props(), "sudoku-solver")
 
     implicit val askTimeout: Timeout = 5.seconds
-    import scala.concurrent.ExecutionContext.Implicits.global
+    val log = system.log
+    import system.dispatcher
 
-    for {
+    val results = for {
       sudokuProblem <- args
-    } {
-
-      println(s"Running solver for $sudokuProblem")
-      val rowUpdates: Seq[SudokuDetailProcessor.RowUpdate] =
-        SudokuIO.readSudokuFromFile(new File(sudokuProblem))
+      _ = log.info(s"Running solver for $sudokuProblem")
+      rowUpdates: Seq[SudokuDetailProcessor.RowUpdate] =
+        SudokuIO
+          .readSudokuFromFile(new File(sudokuProblem))
           .map { case (rowIndex, update) => SudokuDetailProcessor.RowUpdate(rowIndex, update) }
+        result = (sudokuSolver ? SudokuSolver.InitialRowUpdates(rowUpdates)).mapTo[SudokuSolver.Result]
 
-      val result = (sudokuSolver ? SudokuSolver.InitialRowUpdates(rowUpdates)).mapTo[SudokuSolver.Result]
 
-      result
-        .flatMap { x => println(s"Result ~~> ${x.sudoku.mkString("\n   ", "\n   ", "")}"); Future(println("Done !")) }
-        .onComplete{_ => Thread.sleep(1000); system.terminate()}
-    }
+      _ = result.flatMap { x => log.info(s"Result ~~> ${x.sudoku.mkString("\n   ", "\n   ", "")}"); Future(log.info("Done !")) }
+    } yield result
+    Future.sequence(results.to(List)).onComplete(_ => system.terminate())
+
   }
 
 
