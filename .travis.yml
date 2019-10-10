@@ -23,7 +23,7 @@ cache:
     - $HOME/.sbt
     - $HOME/.jabba/jdk
 
-script: sbt -jvm-opts .jvmopts-travis -Dakka.build.scalaVersion=$TRAVIS_SCALA_VERSION ";update ;test:compile ;test" && echo "We're done"
+script: ./test-all
 
 env:
   global:
