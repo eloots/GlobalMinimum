@@ -6,9 +6,9 @@ import org.globalminimum.sudoku.SudokuDetailProcessor.UpdateSender
 object SudokuDetailProcessor {
 
   case class Update(cellUpdates: CellUpdates)
-  case class RowUpdate(id: Int, cellUpdates: CellUpdates)
-  case class ColumnUpdate(id: Int, cellUpdates: CellUpdates)
-  case class BlockUpdate(id: Int, cellUpdates: CellUpdates)
+  case class RowUpdate(rowId: Int, cellUpdates: CellUpdates)
+  case class ColumnUpdate(columnId: Int, cellUpdates: CellUpdates)
+  case class BlockUpdate(blockId: Int, cellUpdates: CellUpdates)
   case object SudokuDetailUnchanged
   case object PrintResult
 
