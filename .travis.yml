@@ -23,7 +23,6 @@ cache:
     - $HOME/.sbt
     - $HOME/.jabba/jdk
 
-#script: ./.travis-test-all
 script: sbt -jvm-opts .jvmopts-travis ";update;project GM_Master;test:compile ;test"
 
 env:
